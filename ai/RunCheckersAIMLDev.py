@@ -96,6 +96,89 @@ def RunAI(inputBoard32):
 
     return moveFromIndex, moveToIndex, moveJumpsIndex
 
+def AIvAI(inputBoard, color, pieceAI, kingAI):
+    
+    dataFile = open("machinelearning.txt", "r")  # Use heuristic values referenced in our txt file
+
+    if color == 1:
+        turn = 'Light'
+    else:
+        turn = 'Dark'
+
+    AIWhite = DraughtsBrain({'PIECE':  15,  # piece
+                             'KING':   30,  # king
+                             'BACK':   3,
+                             'KBACK':  3,
+                             'CENTER': 6,
+                             'KCENTER': 7,
+                             'FRONT':  6,
+                             'KFRONT': 3,
+                             'MOB':    6}, 5)
+    AIWhite.turn = 'Dark'
+
+
+    for i in range(64):
+        if inputBoard[i] != 0:
+            if inputBoard[i] == 1:
+                new_piece = DPiece(AIWhite.board, int(math.floor(i / 8)), i % 8, 'DARK')
+                AIWhite.board.dark_pieces.append(new_piece)
+                AIWhite.board.set_bitmap(math.floor(int(i / 8)), i % 8, new_piece)
+            elif inputBoard[i] == -1:
+                new_piece = DPiece(AIWhite.board, int(math.floor(i / 8)), i % 8, 'LIGHT')
+                AIWhite.board.light_pieces.append(new_piece)
+                AIWhite.board.set_bitmap(math.floor(int(i / 8)), i % 8, new_piece)
+            elif inputBoard[i] == 2:
+                new_piece = DPiece(AIWhite.board, int(math.floor(i / 8)), i % 8, 'DARK')
+                new_piece.is_king = True
+                AIWhite.board.dark_pieces.append(new_piece)
+                AIWhite.board.set_bitmap(int(i / 8), i % 8, new_piece)
+            elif inputBoard[i] == -2:
+                new_piece = DPiece(AIWhite.board, int(math.floor(i / 8)), i % 8, 'LIGHT')
+                new_piece.is_king = True
+                AIWhite.board.light_pieces.append(new_piece)
+                AIWhite.board.set_bitmap(int(i / 8), i % 8, new_piece)
+
+    done = False   # Is the game over?
+    while not done:
+        if turn == 'Light':
+            AIWhite.weights = {'PIECE': 15,  # piece
+                               'KING': 30,  # king
+                               'BACK': 3,
+                               'KBACK': 3,
+                               'CENTER': 6,
+                               'KCENTER': 7,
+                               'FRONT': 6,
+                               'KFRONT': 3,
+                               'MOB': 6}
+            AIWhite.horizon = 5
+        else:
+            AIWhite.weights = {'PIECE': 15,  # piece
+                               'KING': 30,  # king
+                               'BACK': 3,
+                               'KBACK': 3,
+                               'CENTER': 6,
+                               'KCENTER': 7,
+                               'FRONT': 6,
+                               'KFRONT': 3,
+                               'MOB': 6}
+            AIWhite.horizon = 5
+        # print(AIWhite.weights)
+        move = DraughtsBrain.best_move(AIWhite)
+        if move == None:
+            return AIWhite.board, done, winner
+        AIWhite.apply_action(move)  # only for testing
+        print(AIWhite.board)
+        winner = AIWhite.turn
+        done = AIWhite.gameover
+        if turn == 'Light':
+            turn = 'Dark'
+        else:
+            turn = 'Light'
+    return AIWhite.board, done, winner
+
+
+
+
 def isValidMove(inputBoardOld32, inputBoardNew32):
     # Convert 32 size board state array of previous state to 64 size
     inputBoardOld = []
@@ -317,3 +400,39 @@ def printBoard(inputBoard32):
 
     # Print the board state of the AI8 object
     print(AI8.board)
+ 
+# Train AI against itself
+''' 
+for i in range(10):
+    dataFile = open("machinelearning.txt", "r")
+    decision = random.randint(1, 5) % 4
+    piece = int(dataFile.readline())
+    king = int(dataFile.readline())
+    dataFile.close()
+    x, y, winner = AIvAI(BoardNew, 0, piece, king)
+    # dataFile = open("machinelearning.txt", "w")
+    # dataFile.writelines(piece)
+    if winner == "LIGHT":
+        print("loser")
+    dataFile.close()
+    with open("recordData.txt", "a") as myfile:
+        myfile.write(str(piece) + " " + str(king) + ": ")
+        if winner == "LIGHT":
+            myfile.write("L\n")
+            if decision == 0:
+                piece += 1
+            elif decision == 1:
+                piece -= 1
+            elif decision == 2:
+                king += 1
+            elif decision == 3:
+                king -= 1
+            else:
+                print("Error")
+            dataFile = open("machinelearning.txt", "w")
+            dataFile.writelines(str(piece) + "\n")
+            dataFile.writelines(str(king))
+        else:
+            myfile.write("W\n")
+'''    
+
